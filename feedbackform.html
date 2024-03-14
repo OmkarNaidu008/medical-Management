@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reminder App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>   
+       <center>
+       
+        <div class="container">
+        <h1>Reminder App</h1>
+         <input type="email" placeholder="email" id="email"><br><br>
+        <input type="text" id="reminderText" placeholder="Enter your reminder"><br><br>
+        <input type="datetime-local" id="reminderTime"><br><br>
+       
+       
+       <button onclick="setReminder()">Send</button>
+      
+    </div>
+ </center> 
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script>
+        (function () {
+            emailjs.init("pQv84s9sZmlHpp_qQ");
+        })();
+
+        function setReminder() {
+            var reminderText = document.getElementById("reminderText").value;   
+             var email=document.getElementById("email").value;
+            var reminderTime = new Date(document.getElementById("reminderTime").value).getTime();
+            var currentTime = new Date().getTime();
+
+            if (reminderText.trim() === "" || isNaN(reminderTime) || reminderTime <= currentTime) {
+                alert("Please enter a valid reminder time in the future.");
+                return;
+            }
+
+            // Calculate the time difference between the current time and the reminder time
+            var timeDiff = reminderTime - currentTime;
+
+            // Set a timeout to display a browser notification and send an email when the reminder time is reached
+            setTimeout(function () {
+                // Display browser notification
+                if (Notification.permission === "granted") {
+                    var notification = new Notification("Reminder", {
+                        body: reminderText,
+                    });
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(function (permission) {
+                        if (permission === "granted") {
+                            var notification = new Notification("Reminder", {
+                                body: reminderText,
+                            });
+                        }
+                    });
+                }
+
+                // Send email using EmailJS
+                sendEmailReminder(reminderText);
+
+            }, timeDiff);
+        }
+
+        function sendEmailReminder(reminderText) {
+            emailjs.send("service_8mmx2b6", "template_y5hgf5w", {
+                to_email:email.value,
+                message: reminderText,
+            })
+            .then(function (response) {
+                promt("Email sent..........")
+                console.log("Email sent successfully!", response.status, response.text);
+            }, function (error) {
+                console.log("Error sending email:", error);
+            });
+        }
+    </script>
+</body>
+
+</html>
